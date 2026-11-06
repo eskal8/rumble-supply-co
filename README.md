@@ -13,9 +13,9 @@ Hand-built wooden flags. Plain HTML/CSS/JS, no build step, no dependencies.
 
 ## Add a product photo
 
-1. Save it as `assets/flag-N.jpg` (JPEG, roughly square).
+1. Save it as `assets/flag-N.jpg` (JPEG, 4:3 landscape works best).
 2. Add a `<article class="card">` block in `index.html` inside `.product-grid`.
-3. Update the `src`, `alt`, product name, price, description, and specs.
+3. Update the `src`, `alt`, product name, price, size, and description.
 
 ## Add a new product
 

@@ -12,8 +12,10 @@ Drop real flag photos here. Name them to match what index.html expects:
 
 Any extra photos (e.g. `flag-5.jpg`, `flag-6.jpg`) can be added to the lineup later — ask and I'll wire them into the product grid.
 
+**Card image ratio:** 4:3 landscape. Save photos at that ratio (or close) for the cleanest fit. Portrait photos get cropped top/bottom by `object-fit: cover`.
+
 **How to add a new product (when you're ready):**
-1. Save the photo as `assets/flag-N.jpg` (JPEG, roughly square, any size — it will be cropped to fit).
+1. Save the photo as `assets/flag-N.jpg` (JPEG, 4:3 landscape, any size — it will be cropped to fit).
 2. Tell me the product name, price, size, and description.
 3. I'll add the card. The order button, email subject, and everything else updates automatically.
 

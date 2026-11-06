@@ -275,7 +275,7 @@ p { margin: 0 0 1rem; }
 
 .card-media {
   margin: 0;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   background: #ece7df;
   overflow: hidden;
 }
@@ -290,10 +290,11 @@ p { margin: 0 0 1rem; }
 
 .card-top {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
+  min-height: 3.4em; /* keeps price/specs aligned when a title wraps to 2 lines */
 }
 .card-top h3 { margin: 0; }
 
