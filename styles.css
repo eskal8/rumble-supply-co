@@ -259,7 +259,7 @@ p { margin: 0 0 1rem; }
 /* ---------- Product cards ---------- */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 24px;
 }
 
@@ -516,7 +516,6 @@ p { margin: 0 0 1rem; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1000px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: repeat(2, 1fr); }
   .strip-grid { grid-template-columns: repeat(2, 1fr); }
 }
