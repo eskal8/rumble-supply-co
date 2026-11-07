@@ -135,10 +135,10 @@ p { margin: 0 0 1rem; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  min-height: 620px;
+  min-height: 660px;
   display: flex;
   align-items: center;
-  background: var(--dark) url('assets/hero.jpg') center 28% / cover no-repeat;
+  background: var(--dark) url('assets/hero.jpg') 78% 24% / 135% auto no-repeat;
   color: #fff;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
@@ -148,9 +148,10 @@ p { margin: 0 0 1rem; }
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg,
-    rgba(26,26,26,.82) 0%,
-    rgba(26,26,26,.55) 42%,
-    rgba(26,26,26,.05) 78%);
+    rgba(26,26,26,.95) 0%,
+    rgba(26,26,26,.85) 32%,
+    rgba(26,26,26,.5) 58%,
+    rgba(26,26,26,.12) 100%);
 }
 
 .hero-content {
@@ -158,6 +159,7 @@ p { margin: 0 0 1rem; }
   z-index: 1;
   padding: 96px 24px;
   max-width: 640px;
+  text-shadow: 0 1px 12px rgba(26,26,26,.55);
 }
 
 .hero .eyebrow { color: var(--cream); }
