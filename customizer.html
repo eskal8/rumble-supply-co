@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Flag Builder — Draft — Rumble Supply Co.</title>
+<meta name="description" content="Draft mockup: place your artwork on a wooden flag and request a quote.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--bg-alt); }
+
+  .draft-banner {
+    background: #7a2f1c;
+    color: #fff;
+    font-family: var(--font-head);
+    font-size: .85rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 10px 16px;
+  }
+
+  .builder { padding: 56px 0 88px; }
+
+  .builder-head {
+    max-width: 720px;
+    margin: 0 auto 40px;
+    text-align: center;
+  }
+  .builder-head h1 { margin-bottom: 12px; }
+  .builder-head p { color: var(--muted); }
+
+  .builder-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* ---- canvas stage ---- */
+  .stage {
+    background: #1c1a17;
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .stage canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    background: #111;
+    cursor: grab;
+    touch-action: none;
+  }
+  .stage canvas.dragging { cursor: grabbing; }
+  .stage-hint {
+    color: #9a927f;
+    font-size: .85rem;
+    text-align: center;
+    margin: 14px 0 0;
+  }
+
+  /* ---- controls ---- */
+  .panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .panel h2 {
+    font-size: 1rem;
+    letter-spacing: .1em;
+    margin-bottom: 18px;
+  }
+  .panel section + section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .panel h3 {
+    font-size: .8rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .flag-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .flag-option {
+    border: 2px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    background: #f4f0e8;
+  }
+  .flag-option img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .flag-option span {
+    display: block;
+    font-size: .68rem;
+    font-family: var(--font-head);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 5px 4px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .flag-option.is-active { border-color: var(--accent); }
+  .flag-option.is-active span { color: var(--accent); }
+
+  .upload-drop {
+    border: 2px dashed var(--line);
+    border-radius: var(--radius-sm);
+    padding: 22px 14px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  .upload-drop:hover, .upload-drop.over { border-color: var(--accent); color: var(--accent); }
+  .upload-drop strong { display: block; font-family: var(--font-head); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; color: var(--ink-soft); }
+
+  .ctrl { margin-bottom: 16px; }
+  .ctrl:last-child { margin-bottom: 0; }
+  .ctrl label {
+    display: flex;
+    justify-content: space-between;
+    font-size: .85rem;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .ctrl label output { font-family: var(--font-head); color: var(--accent); }
+  .ctrl input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .btn-row { display: grid; gap: 10px; }
+  .btn-ghost-sm {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+  .btn-ghost-sm:hover { border-color: var(--ink); }
+
+  .quote-note {
+    margin-top: 16px;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+  .quote-status {
+    margin-top: 12px;
+    font-size: .85rem;
+    color: var(--accent-deep);
+    min-height: 1.2em;
+  }
+
+  @media (max-width: 900px) {
+    .builder-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="draft-banner">Draft mockup — not part of the live site. For review and debugging only.</div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html#top">
+      <span class="brand-mark">
+        <img src="assets/logo.png" alt="Rumble Supply Co. logo" width="52" height="52">
+      </span>
+      <span class="brand-word">RUMBLE<span> SUPPLY CO.</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html#flags">Flags</a>
+      <a href="index.html#apparel">Apparel</a>
+      <a href="index.html#custom">Custom</a>
+      <a href="index.html#order">Order</a>
+    </nav>
+  </div>
+</header>
+
+<main class="builder">
+  <div class="wrap">
+    <div class="builder-head">
+      <p class="eyebrow">Custom Flag Builder</p>
+      <h1>Put your design on a flag.</h1>
+      <p>Pick a flag style, upload your artwork, drag it into place, resize it, then send it with a quote request.</p>
+    </div>
+
+    <div class="builder-grid">
+      <div class="stage">
+        <canvas id="canvas" width="900" height="675"></canvas>
+        <p class="stage-hint">Drag the artwork to move it · use the controls to resize and rotate</p>
+      </div>
+
+      <aside class="panel">
+        <h2>Build your flag</h2>
+
+        <section>
+          <h3>1 · Flag style</h3>
+          <div class="flag-picker" id="flagPicker"></div>
+        </section>
+
+        <section>
+          <h3>2 · Your artwork</h3>
+          <div class="upload-drop" id="dropZone">
+            <strong>Upload image</strong>
+            PNG or JPG · transparent PNG works best
+            <input type="file" id="fileInput" accept="image/*" hidden>
+          </div>
+        </section>
+
+        <section>
+          <h3>3 · Adjust</h3>
+          <div class="ctrl">
+            <label for="scale">Size <output id="scaleOut">60%</output></label>
+            <input type="range" id="scale" min="5" max="200" value="60">
+          </div>
+          <div class="ctrl">
+            <label for="rotate">Rotation <output id="rotateOut">0°</output></label>
+            <input type="range" id="rotate" min="-180" max="180" value="0">
+          </div>
+          <div class="ctrl">
+            <label for="opacity">Opacity <output id="opacityOut">100%</output></label>
+            <input type="range" id="opacity" min="10" max="100" value="100">
+          </div>
+        </section>
+
+        <section>
+          <h3>4 · Send</h3>
+          <div class="btn-row">
+            <button class="btn btn-ghost-sm btn-block" id="resetBtn" type="button">Reset placement</button>
+            <button class="btn btn-ghost-sm btn-block" id="downloadBtn" type="button">Download mockup (PNG)</button>
+            <button class="btn btn-primary btn-block" id="quoteBtn" type="button">Request a quote</button>
+          </div>
+          <p class="quote-note">The quote request opens your email app with the flag style, size and placement details filled in. No payment is taken.</p>
+          <p class="quote-status" id="quoteStatus" aria-live="polite"></p>
+        </section>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="brand-word footer-brand">RUMBLE<span> SUPPLY CO.</span></p>
+      <p class="fine-print">Hand-built wooden flags &amp; custom DTF apparel. Made to order in the USA.</p>
+    </div>
+    <nav class="footer-nav" aria-label="Footer">
+      <a href="index.html#flags">Flags</a>
+      <a href="index.html#apparel">Apparel</a>
+      <a href="index.html#custom">Custom</a>
+      <a href="index.html#order">Order</a>
+    </nav>
+  </div>
+  <div class="wrap footer-base">
+    <p>&copy; <span id="year">2026</span> Rumble Supply Co. &middot; rumblesupplyco@outlook.com</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // Flag bases the customer can build on.
+  var FLAGS = [
+    { id: '3d-classic',      name: '3D Classic',   img: 'assets/flag-1.jpg' },
+    { id: 'black-grey',      name: 'Black & Grey', img: 'assets/flag-black-grey.jpg' },
+    { id: '2nd-amendment',   name: '2nd Amendment',img: 'assets/flag-2nd-amendment.jpg' },
+    { id: 'draped',          name: 'Draped',       img: 'assets/flag-draped.jpg' },
+    { id: 'hanging',         name: 'Hanging',      img: 'assets/flag-hanging.jpg' },
+    { id: 'custom',          name: 'Custom',       img: 'assets/flag-4.jpg' }
+  ];
+
+  var EMAIL = 'rumblesupplyco@outlook.com';
+
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  var state = {
+    flag: FLAGS[0],
+    base: null,
+    design: null,
+    x: W / 2,
+    y: H / 2,
+    scale: 0.6,
+    rotation: 0,
+    opacity: 1
+  };
+
+  var scaleEl = document.getElementById('scale');
+  var rotateEl = document.getElementById('rotate');
+  var opacityEl = document.getElementById('opacity');
+  var scaleOut = document.getElementById('scaleOut');
+  var rotateOut = document.getElementById('rotateOut');
+  var opacityOut = document.getElementById('opacityOut');
+
+  // ---------- rendering ----------
+  function drawCover(img, w, h) {
+    var ir = img.width / img.height, r = w / h;
+    var dw, dh;
+    if (ir > r) { dh = h; dw = h * ir; } else { dw = w; dh = w / ir; }
+    ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    if (state.base) { drawCover(state.base, W, H); }
+    else { ctx.fillStyle = '#efe9dd'; ctx.fillRect(0, 0, W, H); }
+
+    if (state.design) {
+      var d = state.design;
+      var dw = d.width * state.scale;
+      var dh = d.height * state.scale;
+
+      ctx.save();
+      ctx.globalAlpha = state.opacity;
+      ctx.translate(state.x, state.y);
+      ctx.rotate(state.rotation * Math.PI / 180);
+      // shadow helps the artwork read against a busy flag
+      ctx.shadowColor = 'rgba(0,0,0,.35)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 4;
+      ctx.drawImage(d, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+
+      // placement outline
+      ctx.save();
+      ctx.strokeStyle = 'rgba(184,92,56,.9)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.translate(state.x, state.y);
+      ctx.rotate(state.rotation * Math.PI / 180);
+      ctx.strokeRect(-dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+    }
+  }
+
+  // ---------- flag picker ----------
+  var picker = document.getElementById('flagPicker');
+  FLAGS.forEach(function (f) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'flag-option' + (f === state.flag ? ' is-active' : '');
+    b.setAttribute('data-id', f.id);
+    b.innerHTML = '<img src="' + f.img + '" alt=""><span>' + f.name + '</span>';
+    b.addEventListener('click', function () {
+      state.flag = f;
+      Array.prototype.forEach.call(picker.children, function (c) {
+        c.classList.toggle('is-active', c === b);
+      });
+      loadBase(f);
+    });
+    picker.appendChild(b);
+  });
+
+  function loadBase(f) {
+    var img = new Image();
+    img.onload = function () { state.base = img; render(); };
+    img.src = f.img;
+  }
+
+  // ---------- upload ----------
+  var fileInput = document.getElementById('fileInput');
+  var dropZone = document.getElementById('dropZone');
+
+  dropZone.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files[0]) readFile(fileInput.files[0]);
+  });
+
+  ['dragover', 'dragenter'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.remove('over'); });
+  });
+  dropZone.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+      readFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  function readFile(file) {
+    if (!/^image\//.test(file.type)) {
+      setStatus('That file is not an image. Pick a PNG or JPG.');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        state.design = img;
+        state.scale = 0.6;
+        state.rotation = 0;
+        state.x = W / 2;
+        state.y = H / 2;
+        syncControls();
+        render();
+        setStatus('');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ---------- dragging ----------
+  var dragging = false, lastX = 0, lastY = 0;
+
+  function pointFromEvent(e) {
+    var r = canvas.getBoundingClientRect();
+    var cx = (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX);
+    var cy = (e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY);
+    return { x: (cx - r.left) * (W / r.width), y: (cy - r.top) * (H / r.height) };
+  }
+
+  function startDrag(e) {
+    if (!state.design) return;
+    dragging = true;
+    canvas.classList.add('dragging');
+    var p = pointFromEvent(e);
+    lastX = p.x; lastY = p.y;
+    e.preventDefault();
+  }
+  function moveDrag(e) {
+    if (!dragging) return;
+    var p = pointFromEvent(e);
+    state.x += p.x - lastX;
+    state.y += p.y - lastY;
+    lastX = p.x; lastY = p.y;
+    render();
+    e.preventDefault();
+  }
+  function endDrag() { dragging = false; canvas.classList.remove('dragging'); }
+
+  canvas.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('mouseup', endDrag);
+  canvas.addEventListener('touchstart', startDrag, { passive: false });
+  canvas.addEventListener('touchmove', moveDrag, { passive: false });
+  window.addEventListener('touchend', endDrag);
+
+  canvas.addEventListener('wheel', function (e) {
+    if (!state.design) return;
+    e.preventDefault();
+    var v = state.scale + (e.deltaY < 0 ? 0.03 : -0.03);
+    state.scale = Math.max(0.05, Math.min(2, v));
+    scaleEl.value = Math.round(state.scale * 100);
+    syncControls();
+    render();
+  }, { passive: false });
+
+  // ---------- controls ----------
+  function syncControls() {
+    scaleEl.value = Math.round(state.scale * 100);
+    rotateEl.value = Math.round(state.rotation);
+    opacityEl.value = Math.round(state.opacity * 100);
+    scaleOut.textContent = Math.round(state.scale * 100) + '%';
+    rotateOut.textContent = Math.round(state.rotation) + '°';
+    opacityOut.textContent = Math.round(state.opacity * 100) + '%';
+  }
+
+  scaleEl.addEventListener('input', function () {
+    state.scale = scaleEl.value / 100;
+    scaleOut.textContent = scaleEl.value + '%';
+    render();
+  });
+  rotateEl.addEventListener('input', function () {
+    state.rotation = Number(rotateEl.value);
+    rotateOut.textContent = rotateEl.value + '°';
+    render();
+  });
+  opacityEl.addEventListener('input', function () {
+    state.opacity = opacityEl.value / 100;
+    opacityOut.textContent = opacityEl.value + '%';
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    if (state.design) {
+      state.x = W / 2; state.y = H / 2;
+      state.scale = 0.6; state.rotation = 0; state.opacity = 1;
+    }
+    syncControls();
+    render();
+  });
+
+  // ---------- export ----------
+  document.getElementById('downloadBtn').addEventListener('click', function () {
+    var link = document.createElement('a');
+    link.download = 'rumble-supply-flag-mockup.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  function setStatus(msg) {
+    document.getElementById('quoteStatus').textContent = msg;
+  }
+
+  document.getElementById('quoteBtn').addEventListener('click', function () {
+    if (!state.design) {
+      setStatus('Upload your artwork first — the quote needs something to place.');
+      return;
+    }
+    var pct = Math.round(state.scale * 100);
+    var deg = Math.round(state.rotation);
+    var subject = 'Custom flag quote: ' + state.flag.name;
+    var body = [
+      "Hi — I'd like a quote on a custom flag.",
+      '',
+      'Flag style: ' + state.flag.name,
+      'Artwork size: ' + pct + '% of the flag face',
+      'Rotation: ' + deg + '°',
+      'Opacity: ' + Math.round(state.opacity * 100) + '%',
+      '',
+      'I\'ve attached my artwork and the mockup showing where I want it placed.',
+      '',
+      'Name: ',
+      'Phone: ',
+      'Size (19x10 / 27x14 / 38x20): ',
+      'Notes: '
+    ].join('\r\n');
+    window.location.href = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+    setStatus('Opening your email app with the details pre-filled.');
+  });
+
+  // ---------- boot ----------
+  var y = document.getElementById('year');
+  if (y) y.textContent = String(new Date().getFullYear());
+  loadBase(state.flag);
+  syncControls();
+  render();
+})();
+</script>
+</body>
+</html>
